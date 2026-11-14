@@ -494,3 +494,53 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
   .js .hang { opacity: 1; translate: none; rotate: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
+
+/* ---------- Social buttons: the app's logo pops out of the right end ---------- */
+.socials { display: flex; flex-wrap: wrap; gap: 16px 46px; padding-right: 30px; }
+.social {
+  position: relative; display: inline-flex; align-items: center; min-height: 54px; padding: 0 46px 0 24px;
+  border-radius: 999px; background: var(--ink); color: var(--paper); font-weight: 600; font-size: 16px; text-decoration: none;
+  box-shadow: 0 14px 26px -16px rgba(40, 20, 10, 0.7); transition: background-color 0.25s, translate 0.35s var(--ease);
+}
+.social:hover { color: var(--paper); background: #3a2a20; translate: 0 -2px; }
+.sc-logo {
+  position: absolute; right: -28px; top: 50%; width: 54px; height: 54px; margin-top: -27px; border-radius: 16px;
+  display: grid; place-items: center; rotate: 9deg; box-shadow: 0 12px 22px -8px rgba(20, 10, 5, 0.55), 0 0 0 3px var(--paper);
+  transition: translate 0.6s var(--ease), rotate 0.6s var(--ease), scale 0.6s var(--ease), opacity 0.5s;
+}
+.social:hover .sc-logo { translate: 8px -2px; rotate: -7deg; scale: 1.08; }
+.sc-logo svg { width: 28px; height: 28px; }
+.sc-insta .sc-logo { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
+.sc-insta .sc-logo svg { stroke: #fff; stroke-width: 2; width: 30px; height: 30px; }
+.sc-yelp .sc-logo { background: #d32323; }
+.sc-yelp .sc-logo svg { fill: #fff; }
+.sc-google .sc-logo { background: #fff; }
+.sc-google .sc-logo svg { width: 27px; height: 27px; }
+.js .socials:not(.in) .sc-logo { translate: -34px 0; rotate: 0deg; scale: 0.6; opacity: 0; }
+.socials.in .social:nth-child(2) .sc-logo { transition-delay: 0.12s; }
+.socials.in .social:nth-child(3) .sc-logo { transition-delay: 0.24s; }
+.socials.in .social:hover .sc-logo { transition-delay: 0s; }
+.foot .socials { margin-top: 40px; }
+.foot .social { background: rgba(243, 233, 216, 0.08); color: var(--on-night); box-shadow: inset 0 0 0 1px rgba(243, 233, 216, 0.18); }
+.foot .social:hover { background: rgba(243, 233, 216, 0.14); color: var(--on-night); }
+.foot .sc-logo { box-shadow: 0 12px 22px -8px rgba(0, 0, 0, 0.6), 0 0 0 3px var(--night); }
+.voices-foot { margin-top: clamp(48px, 6vw, 80px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px; }
+.more { display: inline-flex; align-items: center; gap: 10px; font-weight: 650; color: var(--pink); text-decoration: none; font-size: 17px; }
+.more .ic { transition: translate 0.35s var(--ease); }
+.more:hover .ic { translate: 5px 0; }
+
+/* ---------- Reviews page ---------- */
+.reviews-page { padding: clamp(56px, 8vw, 110px) var(--pad); display: grid; gap: clamp(36px, 5vw, 64px); }
+.reviews-page .pull { margin: 0; }
+.quotes-all { margin: 0; columns: 3 300px; column-gap: clamp(24px, 3vw, 48px); display: block; }
+.quotes-all .q { break-inside: avoid; margin: 0 0 clamp(24px, 3vw, 40px); padding: 22px 24px 24px; background: var(--paper); border: 1px solid rgba(91, 59, 36, 0.12); border-radius: 14px; box-shadow: 0 16px 30px -24px rgba(40, 20, 10, 0.5); }
+.q-src { display: inline-block; margin-bottom: 12px; font: 700 12px/1 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 9px; border-radius: 6px; }
+.q-yelp .q-src { background: #fbe3e3; color: #a51b1b; }
+.q-google .q-src { background: #e3ecfb; color: #1f4fa8; }
+.rev-end { display: grid; gap: 26px; padding: clamp(28px, 4vw, 48px); border-radius: 18px; background: var(--wall-2); }
+.rev-end h2 { font-size: clamp(28px, 3vw, 42px); }
+@media (max-width: 767px) {
+  .nav { gap: 18px; }
+  .socials { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .social { min-height: 52px; }
+}

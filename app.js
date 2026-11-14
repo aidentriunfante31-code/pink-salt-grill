@@ -235,6 +235,10 @@
     $$(".hang:not(.in)").forEach((el, i) => {
       if (reduce || el.getBoundingClientRect().top < window.innerHeight * 0.9) setTimeout(() => el.classList.add("in"), (i % 3) * 110);
     });
+    // social logos slide out of their buttons as the row arrives
+    $$(".socials:not(.in)").forEach((el) => {
+      if (reduce || el.getBoundingClientRect().top < window.innerHeight * 0.92) el.classList.add("in");
+    });
   }
   onScroll();
 
