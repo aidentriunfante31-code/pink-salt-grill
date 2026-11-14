@@ -6,3 +6,4 @@
 !/styles.css
 !/app.js
 !/assets/
+/assets/**/*.json
