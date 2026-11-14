@@ -53,8 +53,15 @@
     const c = cv.getBoundingClientRect();
     const rel = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - c.left, y: r.top - c.top, w: r.width, h: r.height }; };
     if (cv === wordCanvas) {
-      const s = rel(cv.parentNode.querySelector(".w2"));
-      return [{ kind: "line", x: s.x + s.w * 0.04, w: s.w * 0.86, y: s.y + s.h * 0.95, n: 22 }];
+      const w2 = cv.parentNode.querySelector(".w2");
+      const s = rel(w2);
+      // measure the real baseline so the salt rests on the marble just under the letters
+      const probe = document.createElement("i");
+      probe.style.cssText = "display:inline-block;width:0;height:0;vertical-align:baseline";
+      w2.appendChild(probe);
+      const base = probe.getBoundingClientRect().top - c.top;
+      probe.remove();
+      return [{ kind: "line", x: s.x + s.w * 0.04, w: s.w * 0.84, y: base + 9, n: 24 }];
     }
     const slab = rel(art.querySelector(".slab img"));
     return [{ kind: "box", x: slab.x + slab.w * 0.18, y: slab.y + slab.h * 0.3, w: slab.w * 0.64, h: slab.h * 0.5, n: 56 }];
@@ -128,12 +135,14 @@
     const end = 420 + 880;
     let done = false;
     const frame = (now) => {
+      if (done) return;
       const t = now - start;
       jobs.forEach((j) => draw(j.cv, j.ctx, j.list, t));
       if (t < end) requestAnimationFrame(frame); else done = true;
     };
     requestAnimationFrame(frame);
-    setTimeout(() => { if (!done) jobs.forEach((j) => draw(j.cv, j.ctx, j.list, 1e6)); }, 1800);
+    // never leave salt hanging mid-air: after the fall, the settled state always wins
+    setTimeout(() => { done = true; jobs.forEach((j) => draw(j.cv, j.ctx, j.list, 1e6)); }, 1800);
   }
 
   if (canvas && art) {
