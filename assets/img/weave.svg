@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- banig-style basket weave: pairs of strands that go over, then under -->
+  <rect width="48" height="48" fill="#f3e8d6"/>
+  <g fill="#ecdec7">
+    <rect x="1" y="1" width="22" height="10" rx="2"/>
+    <rect x="1" y="13" width="22" height="10" rx="2"/>
+    <rect x="25" y="25" width="10" height="22" rx="2"/>
+    <rect x="37" y="25" width="10" height="22" rx="2"/>
+  </g>
+  <g fill="#efe2cd">
+    <rect x="25" y="1" width="10" height="22" rx="2"/>
+    <rect x="37" y="1" width="10" height="22" rx="2"/>
+    <rect x="1" y="25" width="22" height="10" rx="2"/>
+    <rect x="1" y="37" width="22" height="10" rx="2"/>
+  </g>
+  <g fill="none" stroke="#e2d1b6" stroke-width="0.8" opacity="0.7">
+    <path d="M3 6h18M3 18h18M30 3v18M42 3v18M3 30h18M3 42h18M30 27v18M42 27v18"/>
+  </g>
+</svg>

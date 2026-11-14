@@ -6,4 +6,7 @@
 !/styles.css
 !/app.js
 !/assets/
+!/menu/
+!/catering/
+!/visit/
 /assets/**/*.json
