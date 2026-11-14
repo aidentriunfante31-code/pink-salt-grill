@@ -54,14 +54,10 @@
     const rel = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - c.left, y: r.top - c.top, w: r.width, h: r.height }; };
     if (cv === wordCanvas) {
       const s = rel(cv.parentNode.querySelector(".w2"));
-      return [{ kind: "line", x: s.x + s.w * 0.02, w: s.w * 0.9, y: s.y + s.h * 0.86, n: 26 }];
+      return [{ kind: "line", x: s.x + s.w * 0.04, w: s.w * 0.86, y: s.y + s.h * 0.95, n: 22 }];
     }
     const slab = rel(art.querySelector(".slab img"));
-    return [
-      { kind: "box", x: slab.x + slab.w * 0.12, y: slab.y + slab.h * 0.22, w: slab.w * 0.76, h: slab.h * 0.6, n: 70 },
-      { kind: "rim", ...rel(art.querySelector(".plate-a")), n: 18 },
-      { kind: "rim", ...rel(art.querySelector(".plate-b")), n: 10 },
-    ];
+    return [{ kind: "box", x: slab.x + slab.w * 0.18, y: slab.y + slab.h * 0.3, w: slab.w * 0.64, h: slab.h * 0.5, n: 56 }];
   }
 
   function makeCrystals(cv) {
@@ -70,11 +66,8 @@
       for (let i = 0; i < t.n; i++) {
         let x, y;
         if (t.kind === "line") { x = t.x + Math.random() * t.w; y = t.y + (Math.random() - 0.5) * 3; }
-        else if (t.kind === "rim") {
-          const a = Math.random() * Math.PI * 2, k = 0.36 + Math.random() * 0.08;
-          x = t.x + t.w / 2 + Math.cos(a) * t.w * k; y = t.y + t.h / 2 + Math.sin(a) * t.h * k;
-        } else { x = t.x + Math.random() * t.w; y = t.y + Math.random() * t.h; }
-        const r = (t.kind === "line" ? 2.4 : 2.8) + Math.random() * 3;
+        else { x = t.x + Math.random() * t.w; y = t.y + Math.random() * t.h; }
+        const r = (t.kind === "line" ? 2.6 : 3.4) + Math.random() * (t.kind === "line" ? 2.4 : 3.6);
         const sides = 5 + Math.floor(Math.random() * 2);
         const pts = [];
         for (let k = 0; k < sides; k++) {
@@ -82,7 +75,8 @@
           const rr = r * (0.75 + Math.random() * 0.4);
           pts.push([Math.cos(a) * rr, Math.sin(a) * rr]);
         }
-        const col = COLORS[(Math.random() * COLORS.length) | 0];
+        // pale crystals read on the food; deeper pink ones read on white marble under the word
+        const col = t.kind === "line" ? COLORS[2] : COLORS[(Math.random() * 2) | 0];
         list.push({ x, y, y0: y - 180 - Math.random() * 320, rot: Math.random() * 6.28, spin: (Math.random() - 0.5) * 5, pts, col, delay: Math.random() * 420, dur: 520 + Math.random() * 360 });
       }
     }
