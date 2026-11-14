@@ -45,107 +45,101 @@
   const hero = document.querySelector(".hero");
   const art = document.querySelector(".hero-art");
   const canvas = document.querySelector(".salt");
-  let crystals = [];
-  const COLORS = ["#f6b9c6", "#fbd7de", "#ffffff", "#ef9fb2", "#fde9ed"];
+  const wordCanvas = document.querySelector(".salt-word");
+  const COLORS = [["#fbe1e7", "#f2a9ba"], ["#ffffff", "#f6c9d3"], ["#f7c4cf", "#e48ba1"], ["#fde9ed", "#efb3c1"]];
 
-  function targets() {
-    const c = canvas.getBoundingClientRect();
-    const box = (el, inset) => {
-      const r = el.getBoundingClientRect();
-      return { x: r.left - c.left + r.width * inset, y: r.top - c.top + r.height * inset, w: r.width * (1 - inset * 2), h: r.height * (1 - inset * 2) };
-    };
+  // Where salt comes to rest: on the food, around plate rims, and along the baseline of "Salt."
+  function targets(cv) {
+    const c = cv.getBoundingClientRect();
+    const rel = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - c.left, y: r.top - c.top, w: r.width, h: r.height }; };
+    if (cv === wordCanvas) {
+      const s = rel(cv.parentNode.querySelector(".w2"));
+      return [{ kind: "line", x: s.x + s.w * 0.02, w: s.w * 0.9, y: s.y + s.h * 0.86, n: 26 }];
+    }
+    const slab = rel(art.querySelector(".slab img"));
     return [
-      { b: box(art.querySelector(".slab img"), 0.06), n: 150 },
-      { b: box(art.querySelector(".plate-a"), 0.22), n: 30 },
-      { b: box(art.querySelector(".plate-b"), 0.25), n: 16 },
-      { b: { x: c.width * 0.02, y: c.height * 0.8, w: c.width * 0.9, h: c.height * 0.12 }, n: 46 },
-      { b: { x: c.width * 0.86, y: c.height * 0.3, w: c.width * 0.1, h: c.height * 0.5 }, n: 22 },
+      { kind: "box", x: slab.x + slab.w * 0.12, y: slab.y + slab.h * 0.22, w: slab.w * 0.76, h: slab.h * 0.6, n: 70 },
+      { kind: "rim", ...rel(art.querySelector(".plate-a")), n: 18 },
+      { kind: "rim", ...rel(art.querySelector(".plate-b")), n: 10 },
     ];
   }
 
-  function makeCrystals() {
-    crystals = [];
-    for (const t of targets()) {
+  function makeCrystals(cv) {
+    const list = [];
+    for (const t of targets(cv)) {
       for (let i = 0; i < t.n; i++) {
-        const r = 2 + Math.random() * 3.2;
-        const sides = 4 + Math.floor(Math.random() * 3);
+        let x, y;
+        if (t.kind === "line") { x = t.x + Math.random() * t.w; y = t.y + (Math.random() - 0.5) * 3; }
+        else if (t.kind === "rim") {
+          const a = Math.random() * Math.PI * 2, k = 0.36 + Math.random() * 0.08;
+          x = t.x + t.w / 2 + Math.cos(a) * t.w * k; y = t.y + t.h / 2 + Math.sin(a) * t.h * k;
+        } else { x = t.x + Math.random() * t.w; y = t.y + Math.random() * t.h; }
+        const r = (t.kind === "line" ? 2.4 : 2.8) + Math.random() * 3;
+        const sides = 5 + Math.floor(Math.random() * 2);
         const pts = [];
         for (let k = 0; k < sides; k++) {
-          const a = (k / sides) * Math.PI * 2 + Math.random() * 0.5;
-          const rr = r * (0.7 + Math.random() * 0.5);
+          const a = (k / sides) * Math.PI * 2 + Math.random() * 0.45;
+          const rr = r * (0.75 + Math.random() * 0.4);
           pts.push([Math.cos(a) * rr, Math.sin(a) * rr]);
         }
-        const x = t.b.x + Math.random() * t.b.w;
-        const y = t.b.y + Math.random() * t.b.h;
-        crystals.push({ x, y, y0: y - 220 - Math.random() * 380, rot: Math.random() * 6.28, spin: (Math.random() - 0.5) * 6, pts, col: COLORS[(Math.random() * COLORS.length) | 0], delay: Math.random() * 420, dur: 520 + Math.random() * 360 });
+        const col = COLORS[(Math.random() * COLORS.length) | 0];
+        list.push({ x, y, y0: y - 180 - Math.random() * 320, rot: Math.random() * 6.28, spin: (Math.random() - 0.5) * 5, pts, col, delay: Math.random() * 420, dur: 520 + Math.random() * 360 });
       }
     }
+    return list;
   }
 
-  function sizeCanvas() {
+  function sizeCanvas(cv) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const r = canvas.getBoundingClientRect();
-    canvas.width = Math.round(r.width * dpr);
-    canvas.height = Math.round(r.height * dpr);
-    const ctx = canvas.getContext("2d");
+    const r = cv.getBoundingClientRect();
+    cv.width = Math.round(r.width * dpr);
+    cv.height = Math.round(r.height * dpr);
+    const ctx = cv.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return ctx;
   }
 
-  function draw(ctx, t) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (const c of crystals) {
-      let p = Math.min(1, Math.max(0, (t - c.delay) / c.dur));
+  // A faceted crystal: shadow, a darker body, a light top facet and one glint
+  function draw(cv, ctx, list, t) {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const c of list) {
+      const p = Math.min(1, Math.max(0, (t - c.delay) / c.dur));
       if (p <= 0) continue;
-      const fall = p * p; // gravity
-      const bounce = p === 1 ? 0 : Math.max(0, Math.sin((p - 0.86) * 22)) * (p > 0.86 ? 3 * (1 - p) * 7 : 0);
-      const y = c.y0 + (c.y - c.y0) * fall - bounce;
-      const rot = c.rot + c.spin * (1 - p);
+      const bounce = p > 0.86 && p < 1 ? Math.sin((p - 0.86) * 22) * 14 * (1 - p) : 0;
+      const y = c.y0 + (c.y - c.y0) * p * p - Math.max(0, bounce);
       ctx.save();
       ctx.translate(c.x, y);
-      ctx.rotate(rot);
-      ctx.globalAlpha = 0.25;
-      ctx.fillStyle = "#7a2440";
-      ctx.beginPath();
-      c.pts.forEach(([px, py], i) => (i ? ctx.lineTo(px + 0.8, py + 1) : ctx.moveTo(px + 0.8, py + 1)));
-      ctx.fill();
-      ctx.globalAlpha = 0.95;
-      ctx.fillStyle = c.col;
-      ctx.beginPath();
-      c.pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
-      ctx.closePath();
-      ctx.fill();
-      ctx.globalAlpha = 0.9;
-      ctx.strokeStyle = "rgba(255,255,255,0.9)";
-      ctx.lineWidth = 0.6;
-      ctx.beginPath();
-      ctx.moveTo(c.pts[0][0], c.pts[0][1]);
-      ctx.lineTo(c.pts[1][0], c.pts[1][1]);
-      ctx.stroke();
+      ctx.rotate(c.rot + c.spin * (1 - p));
+      const path = (dx, dy) => { ctx.beginPath(); c.pts.forEach(([px, py], i) => (i ? ctx.lineTo(px + dx, py + dy) : ctx.moveTo(px + dx, py + dy))); ctx.closePath(); };
+      ctx.globalAlpha = 0.28; ctx.fillStyle = "#6e1f3a"; path(0.9, 1.3); ctx.fill();
+      ctx.globalAlpha = 1; ctx.fillStyle = c.col[1]; path(0, 0); ctx.fill();
+      ctx.fillStyle = c.col[0];
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(c.pts[0][0], c.pts[0][1]); ctx.lineTo(c.pts[1][0], c.pts[1][1]); ctx.lineTo(c.pts[2][0], c.pts[2][1]); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.moveTo(c.pts[0][0], c.pts[0][1]); ctx.lineTo(c.pts[1][0], c.pts[1][1]); ctx.stroke();
       ctx.restore();
     }
   }
 
+  const canvases = [canvas, wordCanvas].filter(Boolean);
+
   function settle() {
-    const ctx = sizeCanvas();
-    makeCrystals();
-    draw(ctx, 1e6);
+    for (const cv of canvases) draw(cv, sizeCanvas(cv), makeCrystals(cv), 1e6);
   }
 
   function sprinkle() {
-    const ctx = sizeCanvas();
-    makeCrystals();
-    if (reduce) { draw(ctx, 1e6); return; }
+    const jobs = canvases.map((cv) => ({ cv, ctx: sizeCanvas(cv), list: makeCrystals(cv) }));
+    if (reduce) { jobs.forEach((j) => draw(j.cv, j.ctx, j.list, 1e6)); return; }
     const start = performance.now();
     const end = 420 + 880;
     let done = false;
     const frame = (now) => {
       const t = now - start;
-      draw(ctx, t);
+      jobs.forEach((j) => draw(j.cv, j.ctx, j.list, t));
       if (t < end) requestAnimationFrame(frame); else done = true;
     };
     requestAnimationFrame(frame);
-    setTimeout(() => { if (!done) draw(ctx, 1e6); }, 1800);
+    setTimeout(() => { if (!done) jobs.forEach((j) => draw(j.cv, j.ctx, j.list, 1e6)); }, 1800);
   }
 
   if (canvas && art) {
@@ -175,15 +169,22 @@
     if (!reduce && !ticking) { ticking = true; requestAnimationFrame(parallax); }
   }, { passive: true });
 
-  /* Plates set down and section rules draw in as you arrive */
-  document.querySelectorAll(".sec-head h2, .visit h2, .catering h2, .faq h2").forEach((h) => h.classList.add("drawn"));
-  const watch = [...document.querySelectorAll(".fo, .drawn")];
+  /* Phone call bar waits until the hero's own Call button has scrolled away */
+  const callbar = document.querySelector(".callbar");
+  const heroActions = document.querySelector(".hero .hero-actions");
+  if (callbar && heroActions && "IntersectionObserver" in window) {
+    new IntersectionObserver(([e]) => callbar.classList.toggle("on", !e.isIntersecting && e.boundingClientRect.top < 0)).observe(heroActions);
+    setTimeout(() => { if (!alive) callbar.classList.add("on"); }, 1200);
+  } else if (callbar) callbar.classList.add("on");
+
+  /* Best sellers set down onto their salt slabs as you arrive */
+  const watch = [...document.querySelectorAll(".fo")];
   if ("IntersectionObserver" in window && !reduce) {
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (!e.isIntersecting) return;
         const el = e.target;
-        const i = el.classList.contains("fo") ? [...el.parentNode.children].indexOf(el) : 0;
+        const i = [...el.parentNode.children].indexOf(el);
         setTimeout(() => el.classList.add("in"), Math.min(i, 5) * 70);
         io.unobserve(el);
       });
