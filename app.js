@@ -55,70 +55,67 @@
     $$(`.hours li[data-day="${day}"]`).forEach((r) => r.classList.add("today"));
   } catch (e) { /* keep the static hours line */ }
 
-  /* ---------- The kitchen: a four-chapter film, cut by scroll ---------- */
+  /* ---------- The kitchen: a four-chapter film that plays itself once you reach it ---------- */
   const kitchen = $(".kitchen");
-  let kitchenFrame = null, kitchenStop = () => {};
+  let kitchenCheck = () => {};
   if (kitchen && !reduce) {
     kitchen.classList.add("live");
     const stage = $(".stage", kitchen);
     const clips = $$(".k-clip", kitchen);
-    const lines = $$(".k-line", kitchen), rail = $$(".k-rail li", kitchen), cta = $(".k-cta", kitchen);
-    const tc = $(".k-tc-n", kitchen);
-    const WINDOWS = [[0.0, 0.24], [0.24, 0.5], [0.5, 0.74], [0.74, 1.01]];
-    const FADE = 0.045;
-    let warmed = false;
+    const lines = $$(".k-line", kitchen), rail = $$(".k-rail li", kitchen);
+    const tc = $(".k-tc-n", kitchen), pp = $(".k-pp", kitchen);
+    const HOLD = 5600; // each chapter's screen time, a little longer than its 4.4 s loop
+    let ch = -1, timer = 0, running = false, paused = false, warmed = false;
 
-    kitchenStop = () => clips.forEach((v) => { if (!v.paused) v.pause(); });
-    kitchenFrame = () => {
-      const r = kitchen.getBoundingClientRect();
-      const p = clamp(-r.top / (kitchen.offsetHeight - window.innerHeight));
-      // start fetching the later reels once the scene is close
-      if (!warmed && r.top < window.innerHeight * 1.5) { warmed = true; clips.forEach((v) => { v.preload = "auto"; }); }
-
-      // letterbox closes as the reel starts and opens for the table
-      const bars = ease(seg(p, 0, 0.06)) * (1 - ease(seg(p, 0.78, 0.88)));
-      stage.style.setProperty("--bars", bars.toFixed(3));
-
-      // each clip dissolves in over the last one, then slowly pushes in while its chapter plays
-      clips.forEach((v, i) => {
-        const [a, b] = WINDOWS[i];
-        const o = i === 0 ? 1 : ease(seg(p, a - FADE, a + FADE));
-        const push = seg(p, a - FADE, Math.min(1, b + FADE));
-        v.style.opacity = o.toFixed(3);
-        v.style.transform = "scale(" + (1.02 + 0.08 * push).toFixed(4) + ")";
-        const live = p >= a - FADE && p <= b + FADE;
-        if (live && v.paused) v.play().catch(() => {});
-        else if (!live && !v.paused) v.pause();
+    const show = (i) => {
+      ch = (i + clips.length) % clips.length;
+      clips.forEach((v, k) => {
+        if (k === ch) {
+          v.classList.add("on");
+          try { v.currentTime = 0; } catch (e) { /* not loaded yet */ }
+          v.play().catch(() => {});
+        } else if (v.classList.contains("on")) {
+          v.classList.remove("on");
+          setTimeout(() => { if (!v.classList.contains("on")) v.pause(); }, 1400); // after the dissolve
+        }
       });
-
-      // copy: one line per chapter
-      const ch = Math.max(0, WINDOWS.findIndex(([a, b]) => p >= a && p < b));
-      lines.forEach((el, i) => {
-        const [a, b] = WINDOWS[i];
-        const fin = ease(seg(p, a + 0.01, a + 0.06));
-        const fout = i < 3 ? ease(seg(p, b - 0.05, b)) : 0;
-        const o = i === 0 && p < 0.02 ? 1 : fin * (1 - fout);
-        el.style.opacity = o.toFixed(3);
-        el.style.transform = "translateY(" + ((1 - fin) * 26 - fout * 26).toFixed(1) + "px)";
-      });
-      rail.forEach((li, i) => li.classList.toggle("on", i === ch));
+      lines.forEach((el, k) => el.classList.toggle("on", k === ch));
+      rail.forEach((li, k) => li.classList.toggle("on", k === ch));
       tc.textContent = String(ch + 1).padStart(2, "0");
-      cta.classList.toggle("on", p > 0.8);
+      stage.classList.toggle("open", ch === clips.length - 1); // the letterbox opens for the table
     };
+    const next = () => { show(ch + 1); timer = setTimeout(next, HOLD); };
+    const start = () => {
+      if (running || paused) return;
+      running = true;
+      if (!warmed) { warmed = true; clips.forEach((v) => { v.preload = "auto"; }); }
+      if (ch < 0) show(0); else clips[ch].play().catch(() => {});
+      timer = setTimeout(next, HOLD);
+    };
+    const stop = () => {
+      if (!running) return;
+      running = false; clearTimeout(timer);
+      clips.forEach((v) => v.pause());
+    };
+    kitchenCheck = () => {
+      const r = kitchen.getBoundingClientRect();
+      if (!warmed && r.top < window.innerHeight * 1.5) { warmed = true; clips.forEach((v) => { v.preload = "auto"; }); }
+      const seen = r.top < window.innerHeight * 0.7 && r.bottom > window.innerHeight * 0.3;
+      if (seen && !document.hidden) start(); else stop();
+    };
+    pp.addEventListener("click", () => {
+      paused = !paused;
+      pp.setAttribute("aria-pressed", String(paused));
+      pp.setAttribute("aria-label", paused ? "Play the kitchen film" : "Pause the kitchen film");
+      if (paused) stop(); else kitchenCheck();
+    });
+    document.addEventListener("visibilitychange", kitchenCheck);
   }
 
-  /* One loop for everything that follows scroll */
-  let looping = false;
-  const kitchenInView = () => { const r = kitchen.getBoundingClientRect(); return r.bottom > -100 && r.top < window.innerHeight + 100; };
-  const tick = (now) => {
-    if (!kitchenInView()) { looping = false; kitchenStop(); return; }
-    kitchenFrame(now);
-    requestAnimationFrame(tick);
-  };
   const onScroll = () => {
     headerTheme();
     revealHangs();
-    if (kitchenFrame && !looping && kitchenInView()) { looping = true; requestAnimationFrame(tick); }
+    kitchenCheck();
   };
   let hq = false;
   window.addEventListener("scroll", () => { if (!hq) { hq = true; requestAnimationFrame(() => { hq = false; onScroll(); }); } }, { passive: true });
