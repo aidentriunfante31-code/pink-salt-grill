@@ -68,9 +68,17 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
 .mark span { color: var(--pink); }
 .on-dark .mark span, .foot .mark span { color: var(--pink-hi); }
 .nav { display: flex; gap: 26px; margin-left: auto; }
-.nav a { font-weight: 550; font-size: 16px; text-decoration: none; padding: 6px 0; border-bottom: 1.5px solid transparent; }
+.nav a { font-weight: 550; font-size: 16px; text-decoration: none; padding: 6px 0; border-bottom: 1.5px solid transparent; white-space: nowrap; }
 .nav a[aria-current="page"] { border-color: var(--pink); }
 .on-dark .nav a[aria-current="page"] { border-color: var(--pink-hi); }
+/* the sister bakeshop, promoted in the header */
+.jam { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; margin-right: -12px; padding: 0 15px 0 8px; border-radius: 999px; border: 1px solid rgba(194, 42, 116, 0.32); background: rgba(236, 106, 167, 0.09); color: inherit; font-weight: 600; font-size: 14.5px; text-decoration: none; white-space: nowrap; transition: background-color 0.2s, border-color 0.2s, translate 0.2s var(--ease); }
+.jam:hover { background: rgba(236, 106, 167, 0.18); border-color: var(--pink); translate: 0 -1px; }
+.jam:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+.on-dark .jam { border-color: rgba(236, 106, 167, 0.5); background: rgba(236, 106, 167, 0.14); }
+.jam-ic { width: 22px; height: 22px; flex: none; transition: rotate 0.7s var(--ease); }
+.jam:hover .jam-ic { rotate: 72deg; }
+.jam-s { font-weight: 450; opacity: 0.8; }
 
 /* Status */
 .status { display: inline-flex; align-items: center; gap: 10px; font-weight: 550; font-size: 15px; }
@@ -185,6 +193,9 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
 .k-pp[aria-pressed="true"]::after { display: none; }
 .k-pp:hover { border-color: var(--on-night); }
 .k-pp:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
+/* autoplay was refused (Low Power Mode, data saver): make the play button obvious */
+.stage.held .k-pp { scale: 1.5; background: var(--pink); border-color: var(--pink); animation: nudge-pp 1.6s var(--ease) infinite; }
+@keyframes nudge-pp { 50% { box-shadow: 0 0 0 8px rgba(236, 106, 167, 0.25); } }
 .k-copy { position: absolute; z-index: 3; left: var(--pad); top: 50%; translate: 0 -50%; width: min(36vw, 480px); display: grid; gap: 28px; }
 .k-rail { list-style: none; margin: 0; padding: 0; display: flex; gap: 18px; font: 600 13px/1 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-night-2); }
 .k-rail li { padding-bottom: 8px; border-bottom: 2px solid rgba(243, 233, 216, 0.16); transition: color 0.3s, border-color 0.3s; }
@@ -418,6 +429,7 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
 
 /* ---------- Tablet ---------- */
 @media (max-width: 1099px) {
+  .jam-s { display: none; }
   .hero { grid-template-columns: 1fr 0.8fr; }
   .k-copy { top: 9svh; translate: 0 0; width: auto; right: var(--pad); }
   .k-line { font-size: clamp(28px, 4.6vw, 44px); }
@@ -440,12 +452,24 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
   .cat-form { position: static; }
 }
 
+/* iPad portrait: tighten the header so the bakeshop pill fits on one line */
+@media (min-width: 768px) and (max-width: 900px) {
+  .top { gap: 16px; }
+  .nav { gap: 16px; }
+  .nav a { font-size: 15px; }
+  .top .btn-sm span { display: none; }
+  .top .btn-sm { padding: 0 13px; }
+}
+
 /* ---------- Phone: one long page ---------- */
 @media (max-width: 767px) {
   :root { --top-h: 104px; }
   body { font-size: 16px; }
   .top { flex-wrap: wrap; height: auto; min-height: var(--top-h); gap: 4px 12px; padding: 10px 20px 0; align-content: start; }
   .mark { font-size: 21px; flex: 1; }
+  .top { column-gap: 10px; }
+  .jam { min-height: 38px; margin-right: 0; padding: 0 10px 0 6px; font-size: 12.5px; gap: 5px; }
+  .jam-ic { width: 18px; height: 18px; }
   .top .btn-sm span { display: none; }
   .top .btn-sm { padding: 0 13px; }
   .nav { order: 3; width: 100%; margin: 0 -20px; padding: 0 20px; gap: 22px; overflow-x: auto; scrollbar-width: none; height: 46px; align-items: center; }
@@ -555,4 +579,11 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
   .nav { gap: 18px; }
   .socials { flex-direction: column; align-items: flex-start; gap: 16px; }
   .social { min-height: 52px; }
+}
+
+/* Small phones: keep the wordmark, bakeshop pill and call button on one row */
+@media (max-width: 400px) {
+  .mark { font-size: 18.5px; }
+  .jam { font-size: 12px; padding: 0 9px 0 5px; }
+  .jam-ic { width: 17px; height: 17px; }
 }

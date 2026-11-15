@@ -66,6 +66,16 @@
     const tc = $(".k-tc-n", kitchen), pp = $(".k-pp", kitchen);
     const HOLD = 5600; // each chapter's screen time, a little longer than its 4.4 s loop
     let ch = -1, timer = 0, running = false, paused = false, warmed = false;
+    // the first scene's poster shows straight away, so the stage is never black while video loads
+    clips[0].classList.add("on"); lines[0].classList.add("on"); rail[0]?.classList.add("on");
+    // autoplay refused (iPhone Low Power Mode, data saver): hold this frame and offer the play button
+    const blocked = (err) => {
+      if (!err || err.name !== "NotAllowedError" || paused) return;
+      stop(); paused = true;
+      pp.setAttribute("aria-pressed", "true");
+      pp.setAttribute("aria-label", "Play the kitchen film");
+      stage.classList.add("held");
+    };
 
     const show = (i) => {
       ch = (i + clips.length) % clips.length;
@@ -73,7 +83,7 @@
         if (k === ch) {
           v.classList.add("on");
           try { v.currentTime = 0; } catch (e) { /* not loaded yet */ }
-          v.play().catch(() => {});
+          v.play().catch(blocked);
         } else if (v.classList.contains("on")) {
           v.classList.remove("on");
           setTimeout(() => { if (!v.classList.contains("on")) v.pause(); }, 1400); // after the dissolve
@@ -89,7 +99,7 @@
       if (running || paused) return;
       running = true;
       if (!warmed) { warmed = true; clips.forEach((v) => { v.preload = "auto"; }); }
-      if (ch < 0) show(0); else clips[ch].play().catch(() => {});
+      if (ch < 0) show(0); else clips[ch].play().catch(blocked);
       timer = setTimeout(next, HOLD);
     };
     const stop = () => {
@@ -105,6 +115,7 @@
     };
     pp.addEventListener("click", () => {
       paused = !paused;
+      stage.classList.remove("held");
       pp.setAttribute("aria-pressed", String(paused));
       pp.setAttribute("aria-label", paused ? "Play the kitchen film" : "Pause the kitchen film");
       if (paused) stop(); else kitchenCheck();
