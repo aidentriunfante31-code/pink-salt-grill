@@ -152,25 +152,28 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
 .stage { position: relative; height: 100svh; overflow: hidden; }
 .js .kitchen.live { height: 420svh; }
 .js .kitchen.live .stage { position: sticky; top: 0; }
-.k-table {
-  position: absolute; inset: 0; opacity: var(--table, 0);
+/* the film: four clips stacked, cross-faded by scroll */
+.k-film { position: absolute; inset: 0; background: #0d0a08; }
+.k-clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; will-change: opacity, transform; }
+.k-shade {
+  position: absolute; inset: 0; pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(22, 17, 14, 0.82), rgba(22, 17, 14, 0.55) 34%, rgba(22, 17, 14, 0) 52%),
-    radial-gradient(70% 60% at 62% 52%, rgba(255, 220, 170, 0.35), transparent 70%),
-    repeating-linear-gradient(92deg, rgba(91, 59, 36, 0.0) 0 22px, rgba(91, 59, 36, 0.12) 22px 24px, rgba(91, 59, 36, 0) 24px 61px, rgba(255, 240, 220, 0.08) 61px 63px),
-    linear-gradient(180deg, #b78a5c, #a3774b 60%, #8f6640);
+    linear-gradient(90deg, rgba(13, 10, 8, 0.9), rgba(13, 10, 8, 0.66) 30%, rgba(13, 10, 8, 0) 60%),
+    linear-gradient(180deg, rgba(13, 10, 8, 0.6), rgba(13, 10, 8, 0) 24%, rgba(13, 10, 8, 0) 70%, rgba(13, 10, 8, 0.75)),
+    radial-gradient(120% 95% at 62% 50%, transparent 55%, rgba(0, 0, 0, 0.5));
 }
-.k-fire, .k-air { position: absolute; inset: 0; width: 100%; height: 100%; }
-.k-skillet {
-  position: absolute; left: 64%; top: 54%; height: min(60svh, 540px); width: auto;
-  translate: -50% -50%; filter: drop-shadow(0 26px 30px rgba(0, 0, 0, 0.55)); will-change: transform;
+/* fine moving grain, so the four clips read as one reel */
+.k-shade::after {
+  content: ""; position: absolute; inset: -60px; opacity: 0.13; mix-blend-mode: overlay;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 0.9s steps(6) infinite;
 }
-.kp { position: absolute; width: auto; opacity: 0; filter: drop-shadow(0 18px 20px rgba(40, 20, 10, 0.45)); will-change: transform, opacity; }
-.kp-bagoong { right: 0; top: 7svh; height: 34svh; }
-.kp-karekare { right: 0; bottom: 5svh; height: 32svh; }
-.kp-skewers { left: 44%; bottom: 3svh; height: 30svh; rotate: -10deg; }
-.kp-friedchicken { left: 41%; top: 4svh; height: 26svh; }
-.kp-boktofu, .kp-spaghetti { display: none; }
+@keyframes grain { 0% { translate: 0 0; } 20% { translate: -22px 14px; } 40% { translate: 18px -26px; } 60% { translate: -30px -8px; } 80% { translate: 26px 22px; } }
+/* letterbox: closes in as the reel starts, opens for the table */
+.k-bars i { position: absolute; left: 0; right: 0; height: calc(var(--bars, 0) * 10svh); background: #0d0a08; z-index: 2; }
+.k-bars i:first-child { top: 0; } .k-bars i:last-child { bottom: 0; }
+.k-tc { position: absolute; z-index: 3; right: var(--pad); bottom: calc(var(--bars, 0) * 10svh + 22px); margin: 0; font: 600 12px/1 var(--sans); letter-spacing: 0.18em; color: var(--on-night-2); font-variant-numeric: tabular-nums; }
+.k-tc-n { color: var(--on-night); }
 .k-copy { position: absolute; z-index: 3; left: var(--pad); top: 50%; translate: 0 -50%; width: min(36vw, 480px); display: grid; gap: 28px; }
 .k-rail { list-style: none; margin: 0; padding: 0; display: flex; gap: 18px; font: 600 13px/1 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-night-2); }
 .k-rail li { padding-bottom: 8px; border-bottom: 2px solid rgba(243, 233, 216, 0.16); transition: color 0.3s, border-color 0.3s; }
@@ -187,8 +190,8 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
 .kitchen:not(.live) .stage { height: auto; min-height: 100svh; }
 .kitchen:not(.live) .k-lines { gap: 18px; }
 .kitchen:not(.live) .k-line { grid-area: auto; }
-.kitchen:not(.live) .kp { opacity: 1; }
-.kitchen:not(.live) .k-table { opacity: 1; }
+.kitchen:not(.live) .k-clip:last-child { opacity: 1; }
+.kitchen:not(.live) .k-tc, .kitchen:not(.live) .k-rail { display: none; }
 
 /* ---------- Home: best sellers gallery wall ---------- */
 .sec-head { display: grid; gap: 14px; max-width: 760px; }
@@ -408,11 +411,11 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
   .hero { grid-template-columns: 1fr 0.8fr; }
   .k-copy { top: 9svh; translate: 0 0; width: auto; right: var(--pad); }
   .k-line { font-size: clamp(28px, 4.6vw, 44px); }
-  .k-skillet { left: 50%; top: 66%; height: min(44svh, 460px); }
-  .kp-bagoong { top: auto; bottom: 30svh; height: 24svh; }
-  .kp-karekare { height: 22svh; bottom: 2svh; }
-  .kp-skewers { left: 6%; bottom: 3svh; height: 24svh; }
-  .kp-friedchicken { left: 2%; top: auto; bottom: 26svh; height: 18svh; }
+  .k-shade {
+    background:
+      linear-gradient(180deg, rgba(13, 10, 8, 0.92), rgba(13, 10, 8, 0.7) 34%, rgba(13, 10, 8, 0) 62%, rgba(13, 10, 8, 0.7)),
+      radial-gradient(120% 95% at 50% 60%, transparent 55%, rgba(0, 0, 0, 0.5));
+  }
   .gallery { grid-template-columns: repeat(6, 1fr); }
   .g-a { grid-column: 1 / 4; } .g-b { grid-column: 4 / 7; grid-row: span 2; } .g-c { grid-column: 1 / 4; margin-top: 0; }
   .g-d { grid-column: 1 / 4; } .g-e { grid-column: 4 / 7; margin-top: 0; } .g-f { grid-column: 1 / 4; grid-row: auto; margin-top: 0; }
@@ -451,11 +454,8 @@ html { scrollbar-color: var(--wood-2) var(--wall-2); }
   .k-copy { top: calc(var(--top-h) + 16px); left: 20px; right: 20px; gap: 16px; }
   .k-rail { gap: 12px; font-size: 11px; }
   .k-line { font-size: clamp(26px, 7.6vw, 34px); }
-  .k-skillet { top: 70%; height: min(40svh, 340px); }
-  .kp-bagoong { bottom: 28svh; height: 19svh; }
-  .kp-karekare { height: 17svh; }
-  .kp-skewers { height: 19svh; left: 4%; }
-  .kp-friedchicken { height: 14svh; bottom: 24svh; }
+  .k-tc { right: 20px; bottom: calc(var(--bars, 0) * 6svh + 18px); }
+  .k-bars i { height: calc(var(--bars, 0) * 6svh); }
   .gallery { grid-template-columns: 1fr 1fr; gap: 28px 14px; }
   .gallery .hang { grid-column: auto !important; grid-row: auto !important; margin-top: 0 !important; }
   .g-b { grid-column: 1 / -1 !important; }
